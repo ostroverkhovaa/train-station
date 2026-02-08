@@ -94,3 +94,22 @@ class Order(models.Model):
         return f"Order: {self.id}"
 
 
+class Ticket(models.Model):
+    cargo = models.IntegerField()
+    seat = models.IntegerField()
+    journey = models.ForeignKey(
+        Journey,
+        on_delete=models.CASCADE,
+        related_name="tickets"
+    )
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="tickets"
+    )
+
+    class Meta:
+        unique_together = ("journey", "cargo", "seat")
+
+    def __str__(self):
+        return f"Journey {self.journey.id}. Cargo {self.cargo}, seat {self.seat}"
