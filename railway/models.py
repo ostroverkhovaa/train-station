@@ -26,3 +26,9 @@ class Route(models.Model):
     def __str__(self):
         return f"{self.source} - {self.destination}"
 
+
+class TrainType(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
