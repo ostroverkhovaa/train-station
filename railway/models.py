@@ -10,4 +10,19 @@ class Station(models.Model):
         return self.name
 
 
+class Route(models.Model):
+    source = models.ForeignKey(
+        Station,
+        on_delete=models.CASCADE,
+        related_name="source_station"
+    )
+    destination = models.ForeignKey(
+        Station,
+        on_delete=models.CASCADE,
+        related_name="destination_station"
+    )
+    distance = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.source} - {self.destination}"
 
