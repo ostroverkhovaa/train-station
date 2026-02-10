@@ -1,9 +1,10 @@
 from datetime import datetime
 from django.db.models import F, Count
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import viewsets, mixins
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 
-from railway.models import Station, Route, TrainType, Train, Crew, Journey
+from railway.models import Station, Route, TrainType, Train, Crew, Journey, Order
 from railway.serializers import (
     StationSerializer,
     RouteSerializer,
@@ -12,7 +13,13 @@ from railway.serializers import (
     TrainTypeSerializer,
     TrainListSerializer,
     TrainDetailSerializer,
-    TrainSerializer, CrewSerializer, JourneyListSerializer, JourneySerializer, JourneyDetailSerializer,
+    TrainSerializer,
+    CrewSerializer,
+    JourneyListSerializer,
+    JourneySerializer,
+    JourneyDetailSerializer,
+    OrderSerializer,
+    OrderListSerializer,
 )
 
 
@@ -64,8 +71,8 @@ class JourneyViewSet(viewsets.ModelViewSet):
         .prefetch_related("crew")
         .annotate(
             tickets_available=(
-                F("train__cargo_nums") * F("train__places_in_cargo")
-                - Count("tickets")
+                F("train__cargo_num") * F("train__places_in_cargo")
+                - Count("tickets", distinct=True)
             )
         )
     )
@@ -97,3 +104,42 @@ class JourneyViewSet(viewsets.ModelViewSet):
                 pass
 
         return queryset
+
+
+class OrderPagination(PageNumberPagination):
+    page_size = 10
+    max_page_size = 100
+
+
+class OrderViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = Order.objects.prefetch_related(
+        "tickets__journey__train",
+        "tickets__journey__route"
+    )
+    serializer_class = OrderSerializer
+    pagination_class = OrderPagination
+    permission_classes = (IsAuthenticated,)
+
+
+    def get_queryset(self):
+        return (
+            Order.objects
+            .filter(user=self.request.user)
+            .prefetch_related(
+                "tickets__journey__train",
+                "tickets__journey__route"
+            )
+        )
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return OrderListSerializer
+
+        return OrderSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
