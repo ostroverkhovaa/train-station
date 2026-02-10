@@ -103,10 +103,10 @@ class JourneySerializer(serializers.ModelSerializer):
 class JourneyListSerializer(JourneySerializer):
     route_name = serializers.CharField(source="route.route_name", read_only=True)
     train_name = serializers.CharField(source="train.name", read_only=True)
-    crew = serializers.CharField(
-        source="crew.full_name",
+    crew = serializers.SlugRelatedField(
         many=True,
-        read_only=True
+        read_only=True,
+        slug_field="full_name"
     )
 
     class Meta:
