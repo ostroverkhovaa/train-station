@@ -115,6 +115,7 @@ class JourneyListSerializer(JourneySerializer):
             "id",
             "route_name",
             "train_name",
+            "crew",
             "departure_time",
             "arrival_time"
         )
