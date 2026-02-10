@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from railway.models import Station, Route, TrainType, Train
+from railway.models import Station, Route, TrainType, Train, Crew
 from railway.serializers import (
     StationSerializer,
     RouteSerializer,
@@ -10,7 +10,7 @@ from railway.serializers import (
     TrainTypeSerializer,
     TrainListSerializer,
     TrainDetailSerializer,
-    TrainSerializer,
+    TrainSerializer, CrewSerializer,
 )
 
 
@@ -48,3 +48,11 @@ class TrainViewSet(viewsets.ModelViewSet):
         if self.action == "retrieve":
             return TrainDetailSerializer
         return TrainSerializer
+
+
+class CrewViewSet(viewsets.ModelViewSet):
+    queryset = Crew.objects.all()
+    serializer_class = CrewSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+
