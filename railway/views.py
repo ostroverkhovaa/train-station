@@ -1,7 +1,9 @@
+from datetime import datetime
+from django.db.models import F, Count
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from railway.models import Station, Route, TrainType, Train, Crew
+from railway.models import Station, Route, TrainType, Train, Crew, Journey
 from railway.serializers import (
     StationSerializer,
     RouteSerializer,
@@ -10,7 +12,7 @@ from railway.serializers import (
     TrainTypeSerializer,
     TrainListSerializer,
     TrainDetailSerializer,
-    TrainSerializer, CrewSerializer,
+    TrainSerializer, CrewSerializer, JourneyListSerializer, JourneySerializer, JourneyDetailSerializer,
 )
 
 
@@ -56,3 +58,42 @@ class CrewViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
+class JourneyViewSet(viewsets.ModelViewSet):
+    queryset = (
+        Journey.objects.select_related("route", "train")
+        .prefetch_related("crew")
+        .annotate(
+            tickets_available=(
+                F("train__cargo_nums") * F("train__places_in_cargo")
+                - Count("tickets")
+            )
+        )
+    )
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return JourneyListSerializer
+        if self.action == "retrieve":
+            return JourneyDetailSerializer
+        return JourneySerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        route_id_str = self.request.query_params.get("route")
+        date = self.request.query_params.get("date")
+
+        if route_id_str:
+            try:
+                queryset = queryset.filter(route_id=int(route_id_str))
+            except ValueError:
+                pass
+
+        if date:
+            try:
+                date = datetime.strptime(date, "%Y-%m-%d").date()
+                queryset = queryset.filter(departure_time__date=date)
+            except ValueError:
+                pass
+
+        return queryset
