@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from railway.models import Station, Route
+from railway.models import Station, Route, TrainType
 
 
 class StationSerializer(serializers.ModelSerializer):
@@ -32,4 +32,9 @@ class RouteDetailSerializer(RouteSerializer):
         model = Route
         fields = ("id", "source", "destination", "distance")
 
+
+class TrainTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrainType
+        fields = ("id", "name")
 
