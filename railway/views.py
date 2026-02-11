@@ -2,9 +2,10 @@ from datetime import datetime
 from django.db.models import F, Count
 from rest_framework import viewsets, mixins
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 
 from railway.models import Station, Route, TrainType, Train, Crew, Journey, Order
+from railway.permissions import IsAdminOrIfAuthenticatedReadOnly
 from railway.serializers import (
     StationSerializer,
     RouteSerializer,
@@ -26,12 +27,12 @@ from railway.serializers import (
 class StationViewSet(viewsets.ModelViewSet):
     queryset = Station.objects.all()
     serializer_class = StationSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class RouteViewSet(viewsets.ModelViewSet):
     queryset = Route.objects.select_related("source", "destination")
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -44,12 +45,12 @@ class RouteViewSet(viewsets.ModelViewSet):
 class TrainTypeViewSet(viewsets.ModelViewSet):
     queryset = TrainType.objects.all()
     serializer_class = TrainTypeSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class TrainViewSet(viewsets.ModelViewSet):
     queryset = Train.objects.select_related("train_type")
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -62,7 +63,7 @@ class TrainViewSet(viewsets.ModelViewSet):
 class CrewViewSet(viewsets.ModelViewSet):
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class JourneyViewSet(viewsets.ModelViewSet):
@@ -76,7 +77,7 @@ class JourneyViewSet(viewsets.ModelViewSet):
             )
         )
     )
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action == "list":
